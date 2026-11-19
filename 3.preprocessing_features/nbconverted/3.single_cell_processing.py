@@ -104,7 +104,7 @@ pprint.pprint(plate_info_dictionary, indent=4)
 
 # ## Process data with pycytominer
 
-# In[ ]:
+# In[4]:
 
 
 # Set up map for renaming metadata column(s)
@@ -201,4 +201,3 @@ test_df = pd.read_parquet(output_feature_select_file)
 
 print(test_df.shape)
 test_df.head(2)
-
