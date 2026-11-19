@@ -24,7 +24,7 @@ from pycytominer.cyto_utils import output
 
 
 # Set round of plates to process
-round_id = "Round_3_data"
+round_id = "Round_4_data"
 
 # Path to dir with cleaned data from single-cell QC
 cleaned_dir = pathlib.Path(f"./data/cleaned_profiles/{round_id}")
@@ -104,7 +104,7 @@ pprint.pprint(plate_info_dictionary, indent=4)
 
 # ## Process data with pycytominer
 
-# In[4]:
+# In[ ]:
 
 
 # Set up map for renaming metadata column(s)
@@ -140,6 +140,15 @@ for plate, info in plate_info_dictionary.items():
 
     # Add 'Metadata_time_point' column based on the plate's time_point from dict
     annotated_df["Metadata_time_point"] = info["time_point"]
+
+    # Drop wells that were only media/empty (never actually cell-seeded). These
+    # are now in the platemap as Metadata_cell_line == "media_didnotprocess" so
+    # CPG's load_data/metadata stay 1:1, but they were never run through the
+    # CellProfiler pipeline -- drop them here so profiles stay consistent with
+    # what was actually processed (continuity with existing single-cell data).
+    annotated_df = annotated_df[
+        annotated_df["Metadata_cell_line"] != "media_didnotprocess"
+    ].reset_index(drop=True)
 
     # Rename Metadata column(s) using the rename() function
     annotated_df.rename(columns=column_name_mapping, inplace=True)

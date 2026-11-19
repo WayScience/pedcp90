@@ -149,6 +149,15 @@ for plate, info in plate_info_dictionary.items():
     # Add 'Metadata_time_point' column based on the plate's time_point from dict
     annotated_df["Metadata_time_point"] = info["time_point"]
 
+    # Drop wells that were only media/empty (never actually cell-seeded). These
+    # are now in the platemap as Metadata_cell_line == "media_didnotprocess" so
+    # CPG's load_data/metadata stay 1:1, but they were never run through the
+    # CellProfiler pipeline -- drop them here so profiles stay consistent with
+    # what was actually processed (continuity with existing single-cell data).
+    annotated_df = annotated_df[
+        annotated_df["Metadata_cell_line"] != "media_didnotprocess"
+    ].reset_index(drop=True)
+
     # Step 3: Output annotated DataFrame
     output(
         df=annotated_df,
