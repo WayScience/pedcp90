@@ -19,7 +19,7 @@ from pycytominer.cyto_utils import output
 
 # ## Set paths and variables
 
-# In[ ]:
+# In[2]:
 
 
 # Set round to be processed
@@ -103,7 +103,7 @@ pprint.pprint(plate_info_dictionary, indent=4)
 
 # ## Process data with pycytominer
 
-# In[ ]:
+# In[4]:
 
 
 # Process plates with pycytominer (U2-OS specific normalization removed)
