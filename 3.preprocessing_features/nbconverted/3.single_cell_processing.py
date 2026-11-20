@@ -128,7 +128,17 @@ for plate, info in plate_info_dictionary.items():
 
     # Load in profile and platemap
     profile_df = pd.read_parquet(info["profile_path"])
-    platemap_df = pd.read_csv(info["platemap_path"])
+    # Load platemap with explicit dtypes: seeding_density as nullable Int64 so the
+    # media_didnotprocess rows (NaN) don't force it to float64, condition as str
+    platemap_df = pd.read_csv(
+        info["platemap_path"], dtype={"seeding_density": "Int64", "condition": str}
+    )
+
+    # Drop media-only wells (never run through CellProfiler), then cast to plain
+    # int64 (no NaNs remain) so output dtypes match previous runs
+    platemap_df = platemap_df.query("cell_line != 'media_didnotprocess'").astype(
+        {"seeding_density": "int64"}
+    )
 
     print("Performing annotation for", plate, "...")
     # Step 1: Annotation
@@ -192,4 +202,3 @@ test_df = pd.read_parquet(output_feature_select_file)
 
 print(test_df.shape)
 test_df.head(2)
-
