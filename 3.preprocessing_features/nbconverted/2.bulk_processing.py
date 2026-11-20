@@ -127,14 +127,17 @@ for plate, info in plate_info_dictionary.items():
     # Load single-cell profiles
     single_cell_df = pd.read_parquet(info["profile_path"])
 
-    # Load platemap, dropping media-only wells (never run through CellProfiler)
-    platemap_df = pd.read_csv(info["platemap_path"]).query("cell_line != 'media_didnotprocess'")
+    # Load platemap with explicit dtypes: seeding_density as nullable Int64 so the
+    # media_didnotprocess rows (NaN) don't force it to float64, condition as str
+    platemap_df = pd.read_csv(
+        info["platemap_path"], dtype={"seeding_density": "Int64", "condition": str}
+    )
 
-    # pd.read_csv() infers seeding_density as float64 because the (now-dropped)
-    # media_didnotprocess rows left it blank -- dtype is decided at parse time
-    # from the WHOLE file, so .query() filtering rows above doesn't undo it.
-    # Safe to cast back to int64 here since every remaining row has a real value.
-    platemap_df["seeding_density"] = platemap_df["seeding_density"].astype("int64")
+    # Drop media-only wells (never run through CellProfiler), then cast to plain
+    # int64 (no NaNs remain) so output dtypes match previous runs
+    platemap_df = platemap_df.query("cell_line != 'media_didnotprocess'").astype(
+        {"seeding_density": "int64"}
+    )
 
     # Step 1: Aggregation
     aggregate(
