@@ -5,7 +5,7 @@
 
 # ## Import libraries
 
-# In[1]:
+# In[ ]:
 
 
 import gc
@@ -20,7 +20,7 @@ from pycytominer.cyto_utils import output
 
 # ## Set paths and variables
 
-# In[2]:
+# In[ ]:
 
 
 # Set round of plates to process
@@ -57,7 +57,7 @@ plate_names
 
 # ## Set dictionary with plates to process
 
-# In[3]:
+# In[ ]:
 
 
 # create plate info dictionary
@@ -104,7 +104,7 @@ pprint.pprint(plate_info_dictionary, indent=4)
 
 # ## Process data with pycytominer
 
-# In[4]:
+# In[ ]:
 
 
 # Set up map for renaming metadata column(s)
@@ -128,7 +128,14 @@ for plate, info in plate_info_dictionary.items():
 
     # Load in profile and platemap
     profile_df = pd.read_parquet(info["profile_path"])
-    platemap_df = pd.read_csv(info["platemap_path"])
+    # Drop media-only wells (never run through CellProfiler)
+    platemap_df = pd.read_csv(info["platemap_path"]).query("cell_line != 'media_didnotprocess'")
+
+    # pd.read_csv() infers seeding_density as float64 because the (now-dropped)
+    # media_didnotprocess rows left it blank -- dtype is decided at parse time
+    # from the WHOLE file, so .query() filtering rows above doesn't undo it.
+    # Safe to cast back to int64 here since every remaining row has a real value.
+    platemap_df["seeding_density"] = platemap_df["seeding_density"].astype("int64")
 
     print("Performing annotation for", plate, "...")
     # Step 1: Annotation
@@ -140,15 +147,6 @@ for plate, info in plate_info_dictionary.items():
 
     # Add 'Metadata_time_point' column based on the plate's time_point from dict
     annotated_df["Metadata_time_point"] = info["time_point"]
-
-    # Drop wells that were only media/empty (never actually cell-seeded). These
-    # are now in the platemap as Metadata_cell_line == "media_didnotprocess" so
-    # CPG's load_data/metadata stay 1:1, but they were never run through the
-    # CellProfiler pipeline -- drop them here so profiles stay consistent with
-    # what was actually processed (continuity with existing single-cell data).
-    annotated_df = annotated_df[
-        annotated_df["Metadata_cell_line"] != "media_didnotprocess"
-    ].reset_index(drop=True)
 
     # Rename Metadata column(s) using the rename() function
     annotated_df.rename(columns=column_name_mapping, inplace=True)
@@ -193,7 +191,7 @@ for plate, info in plate_info_dictionary.items():
     print(f"Preprocessing features completed for {plate}!")
 
 
-# In[5]:
+# In[ ]:
 
 
 # Check output file
@@ -201,3 +199,4 @@ test_df = pd.read_parquet(output_feature_select_file)
 
 print(test_df.shape)
 test_df.head(2)
+

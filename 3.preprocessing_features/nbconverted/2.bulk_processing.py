@@ -103,7 +103,7 @@ pprint.pprint(plate_info_dictionary, indent=4)
 
 # ## Process data with pycytominer
 
-# In[4]:
+# In[ ]:
 
 
 # Process plates with pycytominer (U2-OS specific normalization removed)
@@ -127,8 +127,14 @@ for plate, info in plate_info_dictionary.items():
     # Load single-cell profiles
     single_cell_df = pd.read_parquet(info["profile_path"])
 
-    # Load platemap
-    platemap_df = pd.read_csv(info["platemap_path"])
+    # Load platemap, dropping media-only wells (never run through CellProfiler)
+    platemap_df = pd.read_csv(info["platemap_path"]).query("cell_line != 'media_didnotprocess'")
+
+    # pd.read_csv() infers seeding_density as float64 because the (now-dropped)
+    # media_didnotprocess rows left it blank -- dtype is decided at parse time
+    # from the WHOLE file, so .query() filtering rows above doesn't undo it.
+    # Safe to cast back to int64 here since every remaining row has a real value.
+    platemap_df["seeding_density"] = platemap_df["seeding_density"].astype("int64")
 
     # Step 1: Aggregation
     aggregate(
@@ -148,15 +154,6 @@ for plate, info in plate_info_dictionary.items():
 
     # Add 'Metadata_time_point' column based on the plate's time_point from dict
     annotated_df["Metadata_time_point"] = info["time_point"]
-
-    # Drop wells that were only media/empty (never actually cell-seeded). These
-    # are now in the platemap as Metadata_cell_line == "media_didnotprocess" so
-    # CPG's load_data/metadata stay 1:1, but they were never run through the
-    # CellProfiler pipeline -- drop them here so profiles stay consistent with
-    # what was actually processed (continuity with existing single-cell data).
-    annotated_df = annotated_df[
-        annotated_df["Metadata_cell_line"] != "media_didnotprocess"
-    ].reset_index(drop=True)
 
     # Step 3: Output annotated DataFrame
     output(
