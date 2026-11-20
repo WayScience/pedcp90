@@ -103,7 +103,7 @@ pprint.pprint(plate_info_dictionary, indent=4)
 
 # ## Process data with pycytominer
 
-# In[ ]:
+# In[4]:
 
 
 # Process plates with pycytominer (U2-OS specific normalization removed)
@@ -195,4 +195,3 @@ test_df = pd.read_parquet(output_feature_select_file)
 
 print(test_df.shape)
 test_df.head(2)
-

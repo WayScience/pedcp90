@@ -5,7 +5,7 @@
 
 # ## Import libraries
 
-# In[ ]:
+# In[1]:
 
 
 import gc
@@ -20,7 +20,7 @@ from pycytominer.cyto_utils import output
 
 # ## Set paths and variables
 
-# In[ ]:
+# In[2]:
 
 
 # Set round of plates to process
@@ -57,7 +57,7 @@ plate_names
 
 # ## Set dictionary with plates to process
 
-# In[ ]:
+# In[3]:
 
 
 # create plate info dictionary
@@ -104,7 +104,7 @@ pprint.pprint(plate_info_dictionary, indent=4)
 
 # ## Process data with pycytominer
 
-# In[ ]:
+# In[4]:
 
 
 # Set up map for renaming metadata column(s)
@@ -194,7 +194,7 @@ for plate, info in plate_info_dictionary.items():
     print(f"Preprocessing features completed for {plate}!")
 
 
-# In[ ]:
+# In[5]:
 
 
 # Check output file
@@ -202,4 +202,3 @@ test_df = pd.read_parquet(output_feature_select_file)
 
 print(test_df.shape)
 test_df.head(2)
-
