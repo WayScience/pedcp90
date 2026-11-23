@@ -19,7 +19,7 @@ from pycytominer.cyto_utils import output
 
 # ## Set paths and variables
 
-# In[ ]:
+# In[2]:
 
 
 # Set round to be processed
@@ -103,7 +103,7 @@ pprint.pprint(plate_info_dictionary, indent=4)
 
 # ## Process data with pycytominer
 
-# In[ ]:
+# In[4]:
 
 
 # Process plates with pycytominer (U2-OS specific normalization removed)
@@ -127,8 +127,13 @@ for plate, info in plate_info_dictionary.items():
     # Load single-cell profiles
     single_cell_df = pd.read_parquet(info["profile_path"])
 
-    # Load platemap
-    platemap_df = pd.read_csv(info["platemap_path"])
+    # Load platemap and drop media-only wells (never run through CellProfiler),
+    # then specify dtypes to match previous runs
+    platemap_df = (
+        pd.read_csv(info["platemap_path"])
+        .query("cell_line != 'media_didnotprocess'")
+        .astype({"seeding_density": "int64", "condition": str})
+    )
 
     # Step 1: Aggregation
     aggregate(
@@ -186,4 +191,3 @@ test_df = pd.read_parquet(output_feature_select_file)
 
 print(test_df.shape)
 test_df.head(2)
-
